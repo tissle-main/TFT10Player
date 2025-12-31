@@ -1,7 +1,27 @@
 ﻿@page "/"
+@implements IAsyncDisposable
+@inject FileSystemService FS
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+        ImgUrl = await FS.GetUrlAsync("tft10player/imgs/start-bg.jpg");
+    }
+}
 
 <PageTitle>Home</PageTitle>
+<img src=@ImgUrl />
 
-<h1>Hello, world!</h1>
+@code
+{
+    #region Instance
+    private string ImgUrl { get; set; } = "";
+    #endregion
 
-Welcome to your new app.
+    #region IAsyncDisposable
+    public async ValueTask DisposeAsync()
+    {
+        await FS.RemoveUrlAsync("tft10player/StartBG.jpg");
+    }
+    #endregion
+}
