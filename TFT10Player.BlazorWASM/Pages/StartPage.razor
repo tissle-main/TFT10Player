@@ -1,0 +1,12 @@
+﻿@page "/"
+@inject NavigationManager Navigator
+
+<div class="flex min-h-screen w-screen items-center justify-center bg-black text-white select-none" @onclick=@NavigateToLoadPage>Click anywhere to start</div>
+
+@code
+{
+    private void NavigateToLoadPage()
+    {
+        Navigator.NavigateTo("/Load");
+    }
+}

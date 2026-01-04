@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/TFT10Player.BlazorWASM/wwwroot/css/tailwind.css
+/TFT10Player.BlazorWASM/tailwind.extension.json

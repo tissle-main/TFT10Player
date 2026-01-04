@@ -1,6 +1,5 @@
 using TFT10Player.BlazorWASM;
 using TFT10Player.BlazorWASM.Services;
-using KristofferStrube.Blazor.FileAPI;
 using KristofferStrube.Blazor.FileSystem;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -16,7 +15,8 @@ builder.Services.AddScoped(HttpClient(IServiceProvider sp) =>
     };
 });
 builder.Services.AddStorageManagerService();
-builder.Services.AddURLService();
 builder.Services.AddScoped<FileSystemService>();
+builder.Services.AddScoped<AudioCachingService>();
+builder.Services.AddScoped<DownloadProgressService>();
 
 await builder.Build().RunAsync();

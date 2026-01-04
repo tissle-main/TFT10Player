@@ -19,7 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\js\" />
+    <Folder Include="wwwroot\assets\audio\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\css\tailwind.css" />
   </ItemGroup>
 
 </Project>

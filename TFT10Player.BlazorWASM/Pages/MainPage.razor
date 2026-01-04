@@ -1,0 +1,22 @@
+﻿@page "/Main"
+@inject FileSystemService FS
+@inject NavigationManager Navigator
+
+<div>@State</div>
+<button @onclick=@ClearCache>Clear cache</button>
+
+@code
+{
+    private string State { get; set; } = "";
+
+    private async Task ClearCache()
+    {
+        State = "Clearing cache...";
+        _ = InvokeAsync(StateHasChanged);
+        await FS.ClearAsync();
+        State = "Cache cleared. Navigating to start...";
+        _ = InvokeAsync(StateHasChanged);
+        await Task.Delay(2000);
+        Navigator.NavigateTo("/", forceLoad: false);
+    }
+}

@@ -1,15 +1,11 @@
-﻿using KristofferStrube.Blazor.FileAPI;
-using KristofferStrube.Blazor.FileSystem;
-using JSFile = KristofferStrube.Blazor.FileAPI.File;
+﻿using KristofferStrube.Blazor.FileSystem;
 
 namespace TFT10Player.BlazorWASM.Services;
 
-public sealed class FileSystemService(IStorageManagerService StorageManager, HttpClient HTTP, IURLService URL)
+public sealed class FileSystemService(IStorageManagerService StorageManager)
 {
     #region Static
-    public const string RootFolder = "tft10player";
-
-    private static Dictionary<string, string> Urls { get; } = [];
+    public const string RootFolder = "TFT10Player";
 
     public static void SeparatePathLastSplitter(string path, out string left, out string right)
     {
@@ -22,7 +18,7 @@ public sealed class FileSystemService(IStorageManagerService StorageManager, Htt
     #region Instance
     public async ValueTask<FileSystemDirectoryHandle?> GetDirectoryHandleAsync(string directory_path, bool create = false)
     {
-        if(directory_path.StartsWith($"{RootFolder}/") is false)
+        if(directory_path != RootFolder && directory_path.StartsWith($"{RootFolder}/") is false)
         {
             throw new InvalidOperationException($"Directory must be in the '{RootFolder}' folder");
         }
@@ -60,52 +56,13 @@ public sealed class FileSystemService(IStorageManagerService StorageManager, Htt
     }
     public async ValueTask<bool> FileExistsAsync(string file_path)
     {
-        return await GetFileHandleAsync(file_path) is not null;
-    }
-    public async ValueTask<JSFile> GetFileAsync(string file_path)
-    {
-        if(await GetFileHandleAsync(file_path) is FileSystemFileHandle file_handle)
+        try
         {
-            return await file_handle.GetFileAsync();
+            return await GetFileHandleAsync(file_path) is not null;
         }
-        else
+        catch
         {
-            Task<byte[]> fetch_task = HTTP.GetByteArrayAsync(file_path);
-            file_handle = (await GetFileHandleAsync(file_path, create: true))!;
-            FileSystemWritableFileStream stream = await file_handle.CreateWritableAsync();
-            await stream.WriteAsync(await fetch_task);
-            await stream.CloseAsync();
-            return await file_handle.GetFileAsync();
-        }
-    }
-    public async ValueTask<string> GetUrlAsync(string file_path)
-    {
-        if(Urls.TryGetValue(file_path, out string? url) is true)
-        {
-            return url;
-        }
-        JSFile file = await GetFileAsync(file_path);
-        url = await URL.CreateObjectURLAsync(file);
-        Urls.Add(file_path, url);
-        return url;
-    }
-    public async ValueTask RemoveUrlAsync(string file_path)
-    {
-        if(Urls.TryGetValue(file_path, out string? url) is true)
-        {
-            await URL.RevokeObjectURLAsync(url);
-            Urls.Remove(file_path);
-        }
-    }
-    public async ValueTask RemoveEntryAsync(string file_path, bool recursive = false)
-    {
-        SeparatePathLastSplitter(file_path, out string directory_path, out string file_or_directory);
-        if(await GetDirectoryHandleAsync(directory_path) is FileSystemDirectoryHandle directory)
-        {
-            await directory.RemoveEntryAsync(file_or_directory, new FileSystemRemoveOptions()
-            {
-                Recursive = recursive
-            });
+            return false;
         }
     }
     public async ValueTask ClearAsync()

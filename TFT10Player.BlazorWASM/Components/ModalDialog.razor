@@ -1,0 +1,51 @@
+@code
+{
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string PrimaryText { get; set; } = "Ok";
+    [Parameter] public EventCallback PrimaryClicked { get; set; }
+}
+
+@if(Visible)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/60" @onclick=@BackgroundClick></div>
+        <div class="relative z-10 w-full max-w-lg rounded-lg bg-black p-6 text-white shadow-lg">
+            @if(string.IsNullOrEmpty(Title) is false)
+            {
+                <h3 class="mb-2 text-lg font-semibold">@Title</h3>
+            }
+            <div class="mb-4 text-sm whitespace-pre-wrap">@Message</div>
+            <div class="flex justify-end">
+                <button class="rounded bg-green-700 px-4 py-2 text-white hover:bg-green-600" @onclick=@OnPrimaryClickedInternal>@PrimaryText</button>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code
+{
+    private async Task OnPrimaryClickedInternal()
+    {
+        if(PrimaryClicked.HasDelegate is true)
+        {
+            await PrimaryClicked.InvokeAsync(null);
+        }
+        await CloseAsync();
+    }
+    private async Task BackgroundClick()
+    {
+        await CloseAsync();
+    }
+    private async Task CloseAsync()
+    {
+        Visible = false;
+        if(VisibleChanged.HasDelegate is true)
+        {
+            await VisibleChanged.InvokeAsync(false);
+        }
+    }
+}
