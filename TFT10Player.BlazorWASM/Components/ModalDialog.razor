@@ -1,25 +1,40 @@
-@code
+﻿@code
 {
-    [Parameter] public bool Visible { get; set; }
-    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
-    [Parameter] public string? Title { get; set; }
-    [Parameter] public string? Message { get; set; }
-    [Parameter] public string PrimaryText { get; set; } = "Ok";
-    [Parameter] public EventCallback PrimaryClicked { get; set; }
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? PrimaryButton { get; set; }
+    [Parameter] public RenderFragment? SecondaryButton { get; set; }
+    [Parameter] public EventCallback OnPrimaryClick { get; set; }
+    [Parameter] public EventCallback OnSecondaryClick { get; set; }
 }
 
-@if(Visible)
+@if(IsVisible is true)
 {
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/60" @onclick=@BackgroundClick></div>
-        <div class="relative z-10 w-full max-w-lg rounded-lg bg-black p-6 text-white shadow-lg">
-            @if(string.IsNullOrEmpty(Title) is false)
-            {
-                <h3 class="mb-2 text-lg font-semibold">@Title</h3>
-            }
-            <div class="mb-4 text-sm whitespace-pre-wrap">@Message</div>
-            <div class="flex justify-end">
-                <button class="rounded bg-green-700 px-4 py-2 text-white hover:bg-green-600" @onclick=@OnPrimaryClickedInternal>@PrimaryText</button>
+        <div class="absolute inset-0 bg-black/60"></div>
+        <div class="relative w-11/12 max-w-lg rounded-md bg-black p-6 text-white shadow-lg">
+            <div class="mb-4">@ChildContent</div>
+            <div class="flex justify-between">
+                <button class="rounded border border-white px-4 py-2 text-white hover:bg-white/10" @onclick=@OnSecondaryClickedAsync>
+                    @if(SecondaryButton is not null)
+                    {
+                        @SecondaryButton
+                    }
+                    else
+                    {
+                        <span>Cancel</span>
+                    }
+                </button>
+                <button class="rounded bg-white px-4 py-2 text-black hover:opacity-90" @onclick=@OnPrimaryClickedAsync>
+                    @if(PrimaryButton is not null)
+                    {
+                        @PrimaryButton
+                    }
+                    else
+                    {
+                        <span>OK</span>
+                    }
+                </button>
             </div>
         </div>
     </div>
@@ -28,24 +43,12 @@
 
 @code
 {
-    private async Task OnPrimaryClickedInternal()
+    private Task OnPrimaryClickedAsync()
     {
-        if(PrimaryClicked.HasDelegate is true)
-        {
-            await PrimaryClicked.InvokeAsync(null);
-        }
-        await CloseAsync();
+        return OnPrimaryClick.InvokeAsync(null);
     }
-    private async Task BackgroundClick()
+    private Task OnSecondaryClickedAsync()
     {
-        await CloseAsync();
-    }
-    private async Task CloseAsync()
-    {
-        Visible = false;
-        if(VisibleChanged.HasDelegate is true)
-        {
-            await VisibleChanged.InvokeAsync(false);
-        }
+        return OnSecondaryClick.InvokeAsync(null);
     }
 }

@@ -15,8 +15,7 @@ builder.Services.AddScoped(HttpClient(IServiceProvider sp) =>
     };
 });
 builder.Services.AddStorageManagerService();
-builder.Services.AddScoped<FileSystemService>();
-builder.Services.AddScoped<AudioCachingService>();
-builder.Services.AddScoped<DownloadProgressService>();
-
+builder.Services.AddScoped<BrowserFileSystemService>();
+builder.Services.AddScoped<FileCachingService>();
+builder.Services.AddScoped<FileCachingProgressService>();
 await builder.Build().RunAsync();

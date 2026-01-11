@@ -1,155 +1,117 @@
 ﻿@page "/Load"
-@implements IDisposable
+@layout MainLayout
 @inject NavigationManager Navigator
-@inject AudioCachingService AudioCaching
-@inject DownloadProgressService DownloadProgress
+@inject FileCachingService FileCacher
+@inject FileCachingProgressService FileCachingProgress
+@implements IDisposable
+@code
+{
+    public void Dispose()
+    {
+        FileCachingProgress.StateHasChanged -= OnProgressChanged;
+    }
+}
 @code
 {
     protected override void OnInitialized()
     {
-        DownloadProgress.RenderMethod += RenderComponent;
-        AudioCaching.InformAboutDownloadingFiles += OnInformAboutDownloadingFiles;
+        FileCachingProgress.StateHasChanged += OnProgressChanged;
     }
-    protected override void OnAfterRender(bool first_render)
+    protected override async Task OnAfterRenderAsync(bool first_render)
     {
         if(first_render is false)
         {
             return;
         }
-        _ = StartDownloading();
-    }
-}
-@code
-{
-    public void Dispose()
-    {
-        DownloadProgress.RenderMethod -= RenderComponent;
-        AudioCaching.InformAboutDownloadingFiles -= OnInformAboutDownloadingFiles;
+        ShowStartModal = true;
+        await InvokeAsync(StateHasChanged);
     }
 }
 
-<div class="w-screen min-h-screen bg-[url('/assets/images/start-bg.jpg')] bg-cover bg-no-repeat relative flex flex-col items-center">
-    <audio autoplay loop preload="auto" class="hidden">
-        <source src="/assets/audio/load-page-bg.ogg" type="audio/ogg" />
-    </audio>
-    <div class="pointer-events-none absolute inset-0 flex items-start justify-center pt-1">
-        <div class="pointer-events-auto w-11/12 max-w-[80%]">
-            <div class="rounded-lg bg-gray-800/95 p-4">
-                <div class="h-4 w-full overflow-hidden rounded bg-gray-700">
-                    <div class="h-full bg-green-800" style="width: @(ProgressPercent)%"></div>
-                </div>
-                <div class="mt-2 text-center text-sm text-white">@(CustomProgressText ?? ProgressText)</div>
-            </div>
+<div class="w-screen h-screen bg-cover bg-[url('./../assets/images/load-page.jpg')] relative">
+    <audio src="assets/audio/load-page.ogg" autoplay loop></audio>
+    <div class="absolute top-1 left-1/2 w-4/5 -translate-x-1/2 transform rounded-md bg-black/60 p-4 shadow-lg">
+        <div class="mb-2 text-center text-white">
+            <div class="text-sm font-semibold">@StatusText</div>
+        </div>
+        <div class="h-3 w-full overflow-hidden bg-white/30">
+            <div class="h-full bg-green-500 transition-all" style="width: @(ProgressPercentString)"></div>
         </div>
     </div>
+    <ModalDialog IsVisible=@ShowStartModal OnPrimaryClick=@OnContinueAsync OnSecondaryClick=@OnExit>
+        <ChildContent>
+            <div class="text-center">This application will use the browser open private file system (OPFS) and may download files into it. Continue?</div>
+        </ChildContent>
+        <PrimaryButton>Continue</PrimaryButton>
+        <SecondaryButton>Exit</SecondaryButton>
+    </ModalDialog>
+    <ModalDialog IsVisible=@ShowRetryModal OnPrimaryClick=@OnRetryAsync OnSecondaryClick=@OnCancel>
+        <ChildContent>
+            <div class="text-center">Files validation failed. Would you like to retry?</div>
+        </ChildContent>
+        <PrimaryButton>Retry</PrimaryButton>
+        <SecondaryButton>Cancel</SecondaryButton>
+    </ModalDialog>
 </div>
-<ModalDialog Visible=@ModalVisible VisibleChanged=@OnModalVisibleChanged Title=@ModalTitle Message=@ModalMessage PrimaryText=@ModalPrimaryText PrimaryClicked=@OnModalPrimary />
 
 @code
 {
-    private bool ModalVisible { get; set; } = false;
-    private string ModalPrimaryText { get; set; } = "Ok";
-    private string ModalTitle { get; set; } = string.Empty;
-    private string? CustomProgressText { get; set; } = null;
-    private string ModalMessage { get; set; } = string.Empty;
-    private TaskCompletionSource<bool>? ModalTaskSource { get; set; }
-    private int ProgressPercent
+    private bool ShowRetryModal { get; set; }
+    private bool ShowStartModal { get; set; }
+    private string? CustomProgressText { get; set; } = "";
+    private string ProgressPercentString
     {
-        get => DownloadProgress.Count > 0 ? (int)(DownloadProgress.Index * 100 / DownloadProgress.Count) : 0;
+        get => $"{100.0 * FileCachingProgress.CachedFiles / FileCachingProgress.TotalFiles}%";
     }
-    private string ProgressText
+    private string StatusText
     {
-        get => $"{DownloadProgress.Action} {DownloadProgress.Index + 1}/{DownloadProgress.Count}{(string.IsNullOrEmpty(DownloadProgress.FilePath) ? string.Empty : $" - {DownloadProgress.FilePath}")}{(DownloadProgress.Retry ? " (retry)" : string.Empty)}";
+        get => CustomProgressText ?? $"{(FileCachingProgress.Retry is true ? "(Retry)" : "")} {FileCachingProgress.CurrentAction}[{FileCachingProgress.CachedFiles}/{FileCachingProgress.TotalFiles}] - {FileCachingProgress.Server_Local_Path.Value}";
     }
 
-    private void RenderComponent()
+    private void OnProgressChanged()
     {
         InvokeAsync(StateHasChanged);
     }
-    private void ShowModal(bool value)
+    private async ValueTask CacheAllAsync()
     {
-        ModalVisible = value;
-    }
-    private async Task<bool> ShowModalAndWaitAsync(string title, string message, string primary_text)
-    {
-        ModalTitle = title;
-        ModalMessage = message;
-        ModalPrimaryText = primary_text;
-        ModalTaskSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        ModalVisible = true;
-        await InvokeAsync(StateHasChanged);
-        bool result = await ModalTaskSource.Task;
-        ModalTaskSource = null;
-        return result;
-    }
-    private async Task StartDownloading()
-    {
-        bool ok;
-        try
+        await ShowProgressTextAsync("Starting...");
+        if(await FileCacher.CacheAllAsync() is false)
         {
-            CustomProgressText = "Starting...";
-            _ = InvokeAsync(StateHasChanged);
-            await Task.Delay(2000);
-            CustomProgressText = null;
-            ok = await AudioCaching.DownloadTracks();
-        }
-        catch
-        {
-            ok = false;
-        }
-        if(ok is false)
-        {
-            bool retry = await ShowModalAndWaitAsync(
-                title: "Download failed",
-                message: "Downloading files failed. Press Retry to try again or close this dialog to stop",
-                primary_text: "Retry"
-            );
-            if(retry is true)
-            {
-                await StartDownloading();
-            }
-            else
-            {
-                Navigator.NavigateTo("about:blank", forceLoad: true);
-            }
+            ShowRetryModal = true;
+            await InvokeAsync(StateHasChanged);
         }
         else
         {
-            CustomProgressText = "Finished. Redirecting to the main page...";
-            _ = InvokeAsync(StateHasChanged);
-            await Task.Delay(2000);
-            Navigator.NavigateTo("/Main", forceLoad: false);
+            await ShowProgressTextAsync("Redirecting...");
+            Navigator.NavigateTo("/Main");
         }
     }
-    private async Task OnModalVisibleChanged(bool visible)
+    private async Task OnRetryAsync()
     {
-        ModalVisible = visible;
-        if(ModalVisible is false && ModalTaskSource is not null && ModalTaskSource.Task.IsCompleted is false)
-        {
-            ModalTaskSource.TrySetResult(false);
-        }
+        ShowRetryModal = false;
         await InvokeAsync(StateHasChanged);
+        await CacheAllAsync();
     }
-    private async Task OnModalPrimary()
+    private void OnCancel()
     {
-        if(ModalTaskSource is not null && ModalTaskSource.Task.IsCompleted is false)
-        {
-            ModalTaskSource.TrySetResult(true);
-        }
-        ModalVisible = false;
+        Navigator.NavigateTo("/");
+    }
+    private async Task OnContinueAsync()
+    {
+        ShowStartModal = false;
         await InvokeAsync(StateHasChanged);
+        await CacheAllAsync();
     }
-    private async Task OnInformAboutDownloadingFiles()
+    private void OnExit()
     {
-        bool accepted = await ShowModalAndWaitAsync(
-            title: "Download required files",
-            message: "This application needs to download audio files into your browser storage (OPFS). Continue? If you do not want this, the app will exit",
-            primary_text: "Continue"
-        );
-        if(accepted is false)
-        {
-            Navigator.NavigateTo("about:blank", forceLoad: true);
-            return;
-        }
+        Navigator.NavigateTo("/");
+    }
+    private async ValueTask ShowProgressTextAsync(string text)
+    {
+        CustomProgressText = text;
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(2000);
+        CustomProgressText = null;
+        await InvokeAsync(StateHasChanged);
     }
 }

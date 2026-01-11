@@ -19,10 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\assets\audio\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="wwwroot\css\tailwind.css" />
   </ItemGroup>
 
