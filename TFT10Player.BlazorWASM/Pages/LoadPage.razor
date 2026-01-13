@@ -61,7 +61,7 @@
     private string? CustomProgressText { get; set; } = "";
     private string ProgressPercentString
     {
-        get => $"{100.0 * FileCachingProgress.CachedFiles / FileCachingProgress.TotalFiles}%";
+        get => $"{double.Round(100.0 * FileCachingProgress.CachedFiles / FileCachingProgress.TotalFiles, 2).ToString(CultureInfo.InvariantCulture)}%";
     }
     private string StatusText
     {
