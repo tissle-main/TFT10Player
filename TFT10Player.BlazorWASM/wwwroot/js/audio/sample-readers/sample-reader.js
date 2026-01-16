@@ -4,8 +4,8 @@ export class SampleReader {
     /* ========= Static ========= */
 
     static ChannelCount = 2;
-    static FramesPerSecond = 44100;
-    static SamplesPerSecond = 88200;
+    static FramesPerSecond = 48000;
+    static SamplesPerSecond = 96000;
 
     static secondsToSamples(seconds) {
         return Math.floor(seconds * SampleReader.SamplesPerSecond);

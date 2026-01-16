@@ -2,7 +2,6 @@
 import { SampleReader } from "./sample-reader.js";
 
 const FLOAT_SIZE = 4;
-
 export class FileSampleReader extends SampleReader {
     /**
      * @param {FileSystemSyncAccessHandle} handle
