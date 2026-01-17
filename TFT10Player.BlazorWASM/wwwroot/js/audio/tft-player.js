@@ -81,10 +81,10 @@ export class TFTPlayer extends SampleReader {
                 sender.readers.add(newTrack.reader);
             }
 
-            sender.readerRemoved = null;
+            sender.offReaderRemoved(this._onReaderRemoved);
         };
 
-        this.mixReader.readerRemoved = this._onReaderRemoved;
+        this.mixReader.onReaderRemoved(this._onReaderRemoved);
     }
 
     /* ========= SampleReader Base ========= */
