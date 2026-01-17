@@ -12,12 +12,12 @@ export class FadeSampleReader extends SampleReader {
     /* ========= Static ========= */
 
     /**
-     * Square fade function
-     * (3 - 2x) * x^2
+     * Fade function
+     * tanh(3.14x)
      * @param {number} sample
      */
-    static squareFade(sample) {
-        return (3.0 - 2.0 * sample) * sample * sample;
+    static tanhFade(x) {
+        return Math.tanh(3.14 * x);
     }
 
     /* ========= Instance ========= */
@@ -90,7 +90,7 @@ export class FadeSampleReader extends SampleReader {
 
         // iterate stereo pairs
         for (let i = 0; i < len; i += 2) {
-            const factor = FadeSampleReader.squareFade(pos / duration);
+            const factor = FadeSampleReader.tanhFade(pos / duration);
 
             buffer[i] *= factor;
             buffer[i + 1] *= factor;
