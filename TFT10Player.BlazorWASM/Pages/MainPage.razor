@@ -1,8 +1,13 @@
 ﻿@page "/Main"
 @inject NavigationManager Navigator
 @inject BrowserFileSystemService FileSystem
+@inject TFTPlayerInteropService TFTPlayer
 
-<button @onclick=@ClearAllAsync>Clear All</button>
+<button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@ClearAllAsync>Clear All</button>
+<button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ResumeAsync())>Resume</button>
+<button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.PauseAsync())>Pause</button>
+<button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ChangeTracksAsync())>Change Tracks</button>
+<button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ChangePeriodAsync())>Change Period</button>
 <script src="js/main.js" type="module" async></script>
 
 @code

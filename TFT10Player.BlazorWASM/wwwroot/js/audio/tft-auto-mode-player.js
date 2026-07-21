@@ -8,12 +8,14 @@ import { TrackType } from "./tracks/track-type.js";
  * Автоматичний режим зміни треків/періодів
  * WebWorker + OPFS compatible
  */
-export class TFTAutoModePlayer extends SampleReader {
+export class TFTAutoModePlayer extends SampleReader
+{
 
     /**
      * @param {SampleReader} tftPlayer
      */
-    constructor(tftPlayer) {
+    constructor(tftPlayer)
+    {
         super();
         this.tftPlayer = tftPlayer;
 
@@ -26,6 +28,9 @@ export class TFTAutoModePlayer extends SampleReader {
 
         this.changingPeriod = false;
         this.changingTracks = false;
+        this.changeTracksToken = null;
+        this.changePeriodToken = null;
+        this.startEventToken = null;
 
         this.minChangeTrackMinutes = 4;
         this.maxChangeTrackMinutes = 4;
@@ -35,7 +40,8 @@ export class TFTAutoModePlayer extends SampleReader {
 
     /* ========= Static Helpers ========= */
 
-    static _getRandomItem(array) {
+    static _getRandomItem(array)
+    {
         return array[Math.floor(Math.random() * array.length)];
     }
 
@@ -46,7 +52,8 @@ export class TFTAutoModePlayer extends SampleReader {
      * @param {{value: import("./tracks/track-file.js").TrackFile|null}} secondaryTrackRef
      * @param {import("./tracks/track-period.js").TrackPeriod} period
      */
-    static getTracks(mainTrackRef, drumsTrackRef, secondaryTrackRef, period) {
+    static getTracks(mainTrackRef, drumsTrackRef, secondaryTrackRef, period)
+    {
         const allGroups = Tracks.allGroups;
         const group = allGroups[Math.floor(Math.random() * allGroups.length)];
 
@@ -54,11 +61,13 @@ export class TFTAutoModePlayer extends SampleReader {
         const drums = drumsTrackRef.value;
         const secondary = secondaryTrackRef.value;
 
-        if ((main?.trackGroup === group) || (drums?.trackGroup === group) || (secondary?.trackGroup === group)) {
+        if ((main?.trackGroup === group) || (drums?.trackGroup === group) || (secondary?.trackGroup === group))
+        {
             return;
         }
 
-        switch (group) {
+        switch (group)
+        {
             case TrackGroup.None:
             case TrackGroup.NoOrigin:
                 break;
@@ -68,8 +77,10 @@ export class TFTAutoModePlayer extends SampleReader {
                 if ([TrackGroup.Jazz, TrackGroup.Maestro, TrackGroup.Hyperpop].includes(main?.trackGroup)) break;
                 if ([TrackGroup.Jazz, TrackGroup.Maestro, TrackGroup.Hyperpop].includes(secondary?.trackGroup)) break;
 
-                if (!main && !secondary) {
-                    switch (Math.floor(Math.random() * 2)) {
+                if (!main && !secondary)
+                {
+                    switch (Math.floor(Math.random() * 2))
+                    {
                         case 0: mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break;
                         case 1: secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break;
                     }
@@ -77,8 +88,10 @@ export class TFTAutoModePlayer extends SampleReader {
                 }
                 if (!main) { mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break; }
                 if (!secondary) { secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break; }
-                if (main?.trackGroup === drums?.trackGroup && drums?.trackGroup === secondary?.trackGroup) {
-                    switch (Math.floor(Math.random() * 2)) {
+                if (main?.trackGroup === drums?.trackGroup && drums?.trackGroup === secondary?.trackGroup)
+                {
+                    switch (Math.floor(Math.random() * 2))
+                    {
                         case 0: mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break;
                         case 1: secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break;
                     }
@@ -91,7 +104,8 @@ export class TFTAutoModePlayer extends SampleReader {
             case TrackGroup.ILLBeats:
             case TrackGroup.MixMaster:
                 if (!drumsTrackRef.value) { drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums); break; }
-                if (drumsTrackRef.value.trackGroup === main?.trackGroup || drumsTrackRef.value.trackGroup === secondary?.trackGroup) {
+                if (drumsTrackRef.value.trackGroup === main?.trackGroup || drumsTrackRef.value.trackGroup === secondary?.trackGroup)
+                {
                     drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums);
                     break;
                 }
@@ -103,8 +117,10 @@ export class TFTAutoModePlayer extends SampleReader {
             case TrackGroup.Emo:
             case TrackGroup.Disco:
             case TrackGroup.EightBit:
-                if (!main && !drums && !secondary) {
-                    switch (Math.floor(Math.random() * 2)) {
+                if (!main && !drums && !secondary)
+                {
+                    switch (Math.floor(Math.random() * 2))
+                    {
                         case 0:
                             mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Main);
                             drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums);
@@ -118,8 +134,10 @@ export class TFTAutoModePlayer extends SampleReader {
                 }
                 if (!main && !drums) { mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums); break; }
                 if (!secondary && !drums) { secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums); break; }
-                if (!main && !secondary) {
-                    switch (Math.floor(Math.random() * 2)) {
+                if (!main && !secondary)
+                {
+                    switch (Math.floor(Math.random() * 2))
+                    {
                         case 0: mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break;
                         case 1: secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break;
                     }
@@ -128,8 +146,10 @@ export class TFTAutoModePlayer extends SampleReader {
                 if (!main) { mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break; }
                 if (!drums) { drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums); break; }
                 if (!secondary) { secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break; }
-                if (main?.trackGroup === drums?.trackGroup && drums?.trackGroup === secondary?.trackGroup) {
-                    switch (Math.floor(Math.random() * 5)) {
+                if (main?.trackGroup === drums?.trackGroup && drums?.trackGroup === secondary?.trackGroup)
+                {
+                    switch (Math.floor(Math.random() * 5))
+                    {
                         case 0: mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums); break;
                         case 1: secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums); break;
                         case 2: mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break;
@@ -146,22 +166,27 @@ export class TFTAutoModePlayer extends SampleReader {
             case TrackGroup.Heartsteel:
             case TrackGroup.TrueDamage:
             case TrackGroup.Pentakill:
-                if (!main && !drums && !secondary) {
+                if (!main && !drums && !secondary)
+                {
                     mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Main);
                     drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums);
                     secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Secondary);
                     break;
                 }
-                if (!main && !drums) {
-                    switch (Math.floor(Math.random() * 2)) {
+                if (!main && !drums)
+                {
+                    switch (Math.floor(Math.random() * 2))
+                    {
                         case 0: mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break;
                         case 1: mainTrackRef.value = Tracks.findTrack(period, group, TrackType.Secondary); break;
                     }
                     drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums);
                     break;
                 }
-                if (!secondary && !drums) {
-                    switch (Math.floor(Math.random() * 2)) {
+                if (!secondary && !drums)
+                {
+                    switch (Math.floor(Math.random() * 2))
+                    {
                         case 0: secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Secondary); break;
                         case 1: secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break;
                     }
@@ -173,9 +198,11 @@ export class TFTAutoModePlayer extends SampleReader {
                 if (!drums) { drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums); break; }
                 if (!secondary) { switch (Math.floor(Math.random() * 2)) { case 0: secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Secondary); break; case 1: secondaryTrackRef.value = Tracks.findTrack(period, group, TrackType.Main); break; } break; }
 
-                if (main?.trackGroup === drums?.trackGroup && drums?.trackGroup === secondary?.trackGroup) {
+                if (main?.trackGroup === drums?.trackGroup && drums?.trackGroup === secondary?.trackGroup)
+                {
                     const choice = Math.floor(Math.random() * 5);
-                    switch (choice) {
+                    switch (choice)
+                    {
                         case 0: mainTrackRef.value = Math.random() < 0.5 ? Tracks.findTrack(period, group, TrackType.Main) : Tracks.findTrack(period, group, TrackType.Secondary); drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums); break;
                         case 1: secondaryTrackRef.value = Math.random() < 0.5 ? Tracks.findTrack(period, group, TrackType.Secondary) : Tracks.findTrack(period, group, TrackType.Main); drumsTrackRef.value = Tracks.findTrack(period, group, TrackType.Drums); break;
                         case 2: mainTrackRef.value = Math.random() < 0.5 ? Tracks.findTrack(period, group, TrackType.Main) : Tracks.findTrack(period, group, TrackType.Secondary); break;
@@ -190,7 +217,8 @@ export class TFTAutoModePlayer extends SampleReader {
         }
     }
 
-    static addNoOrigin(mainTrackRef, secondaryTrackRef, period) {
+    static addNoOrigin(mainTrackRef, secondaryTrackRef, period)
+    {
         const main = mainTrackRef.value;
         const secondary = secondaryTrackRef.value;
 
@@ -199,9 +227,11 @@ export class TFTAutoModePlayer extends SampleReader {
         if (main && !invalidGroup.includes(main.trackGroup)) return;
         if (secondary && !invalidGroup.includes(secondary.trackGroup)) return;
 
-        if (!main) {
+        if (!main)
+        {
             mainTrackRef.value = Tracks.findTrack(period, TrackGroup.NoOrigin, TrackType.Main);
-        } else {
+        } else
+        {
             secondaryTrackRef.value = Tracks.findTrack(period, TrackGroup.NoOrigin, TrackType.Main);
         }
     }
@@ -211,29 +241,61 @@ export class TFTAutoModePlayer extends SampleReader {
     /**
      * @param {boolean} useStart
      */
-    start(useStart = true) {
-        if (useStart) {
+    start(useStart = true)
+    {
+        if (useStart)
+        {
             Tracks.startTrack.fullVolume();
             Tracks.startTrack.position = 0;
             this.tftPlayer.mixReader.readers.add(Tracks.startTrack);
 
-            this.tftPlayer.eventReader.addEvent(
+            this.startEventToken = this.tftPlayer.eventReader.addEvent(
                 SampleReader.secondsToSamples(Tracks.noOriginStartSeconds),
-                () => {
+                () =>
+                {
                     this.tftPlayer.addTrack(TrackGroup.NoOrigin, TrackType.Main);
                     this.mainTrack = Tracks.findTrack(this.tftPlayer.currentPeriod, TrackGroup.NoOrigin, TrackType.Main);
-                    this._scheduleChangePeriod();
-                    this._scheduleChangeTracks();
+                    this.enableAutoMode();
                 }
             );
-        } else {
-            this._scheduleChangePeriod();
-            this._scheduleChangeTracks();
+        } else
+        {
+            this.enableAutoMode();
         }
     }
 
-    _scheduleChangePeriod() {
-        this.tftPlayer.eventReader.addEvent(
+    disableAutoMode()
+    {
+        if (this.startEventToken !== null)
+        {
+            this.tftPlayer.eventReader.removeEvent(this.startEventToken);
+        }
+        if (this.changePeriodToken !== null)
+        {
+            this.tftPlayer.eventReader.removeEvent(this.changePeriodToken);
+        }
+        if (this.changeTracksToken !== null)
+        {
+            this.tftPlayer.eventReader.removeEvent(this.changeTracksToken);
+        }
+    }
+    enableAutoMode()
+    {
+        this._scheduleChangeTracks();
+        this._scheduleChangePeriod();
+    }
+
+    _scheduleChangePeriod()
+    {
+        if (this.startEventToken !== null)
+        {
+            this.tftPlayer.eventReader.removeEvent(this.startEventToken);
+        }
+        if (this.changePeriodToken !== null)
+        {
+            this.tftPlayer.eventReader.removeEvent(this.changePeriodToken);
+        }
+        this.changePeriodToken = this.tftPlayer.eventReader.addEvent(
             SampleReader.secondsToSamples(
                 this._randomMinutes(this.minChangePeriodMinutes, this.maxChangePeriodMinutes)
             ),
@@ -241,8 +303,17 @@ export class TFTAutoModePlayer extends SampleReader {
         );
     }
 
-    _scheduleChangeTracks() {
-        this.tftPlayer.eventReader.addEvent(
+    _scheduleChangeTracks()
+    {
+        if (this.startEventToken !== null)
+        {
+            this.tftPlayer.eventReader.removeEvent(this.startEventToken);
+        }
+        if (this.changeTracksToken !== null)
+        {
+            this.tftPlayer.eventReader.removeEvent(this.changeTracksToken);
+        }
+        this.changeTracksToken = this.tftPlayer.eventReader.addEvent(
             SampleReader.secondsToSamples(
                 this._randomMinutes(this.minChangeTrackMinutes, this.maxChangeTrackMinutes)
             ),
@@ -250,12 +321,15 @@ export class TFTAutoModePlayer extends SampleReader {
         );
     }
 
-    _randomMinutes(min, max) {
+    _randomMinutes(min, max)
+    {
         return Math.floor(Math.random() * (max - min + 1) + min) * 60;
     }
 
-    _changePeriod() {
-        if (!this.changingTracks) {
+    _changePeriod()
+    {
+        if (!this.changingTracks && !this.changingPeriod && !this.tftPlayer.changingPeriod)
+        {
             this.changingPeriod = true;
             this.tftPlayer.changePeriod();
 
@@ -264,19 +338,23 @@ export class TFTAutoModePlayer extends SampleReader {
             if (this.secondaryTrack) this.secondaryTrack = Tracks.findTrack(this.tftPlayer.currentPeriod, this.secondaryTrack.trackGroup, this.secondaryTrack.trackType);
 
             this._scheduleChangePeriod();
-        } else {
-            this._scheduleChangePeriodIn(10);
-            this.changingTracks = false;
+            this.changingPeriod = false;
+        } else
+        {
+            this._scheduleChangePeriodIn(1);
         }
     }
 
-    _changeTracks() {
-        if (!this.changingPeriod) {
+    _changeTracks()
+    {
+        if (!this.changingPeriod && !this.changingTracks && !this.tftPlayer.changingPeriod)
+        {
             this.changingTracks = true;
 
-            this.mainTrack?.reader.fadeOut();
-            this.drumsTrack?.reader.fadeOut();
-            this.secondaryTrack?.reader.fadeOut();
+            for (const reader of this.tftPlayer.mixReader.readers)
+            {
+                reader.fadeOut();
+            }
 
             const mainTrackRef = { value: null };
             const drumsTrackRef = { value: null };
@@ -287,17 +365,20 @@ export class TFTAutoModePlayer extends SampleReader {
             TFTAutoModePlayer.getTracks(mainTrackRef, drumsTrackRef, secondaryTrackRef, this.tftPlayer.currentPeriod);
             TFTAutoModePlayer.addNoOrigin(mainTrackRef, secondaryTrackRef, this.tftPlayer.currentPeriod);
 
-            if (mainTrackRef.value) {
+            if (mainTrackRef.value)
+            {
                 mainTrackRef.value.reader.fadeIn();
                 mainTrackRef.value.reader.position = this.tftPlayer.eventReader.position;
                 this.tftPlayer.mixReader.readers.add(mainTrackRef.value.reader);
             }
-            if (drumsTrackRef.value) {
+            if (drumsTrackRef.value)
+            {
                 drumsTrackRef.value.reader.fadeIn();
                 drumsTrackRef.value.reader.position = this.tftPlayer.eventReader.position;
                 this.tftPlayer.mixReader.readers.add(drumsTrackRef.value.reader);
             }
-            if (secondaryTrackRef.value) {
+            if (secondaryTrackRef.value)
+            {
                 secondaryTrackRef.value.reader.fadeIn();
                 secondaryTrackRef.value.reader.position = this.tftPlayer.eventReader.position;
                 this.tftPlayer.mixReader.readers.add(secondaryTrackRef.value.reader);
@@ -308,21 +389,40 @@ export class TFTAutoModePlayer extends SampleReader {
             this.secondaryTrack = secondaryTrackRef.value;
 
             this._scheduleChangeTracks();
-        } else {
-            this._scheduleChangeTracksIn(10);
-            this.changingPeriod = false;
+            this.changingTracks = false;
+        } else
+        {
+            this._scheduleChangeTracksIn(1);
         }
     }
 
-    _scheduleChangePeriodIn(seconds) {
-        this.tftPlayer.eventReader.addEvent(
+    _scheduleChangePeriodIn(seconds)
+    {
+        if (this.startEventToken !== null)
+        {
+            this.tftPlayer.eventReader.removeEvent(this.startEventToken);
+        }
+        if (this.changePeriodToken !== null)
+        {
+            this.tftPlayer.eventReader.removeEvent(this.changePeriodToken);
+        }
+        this.changePeriodToken = this.tftPlayer.eventReader.addEvent(
             SampleReader.secondsToSamples(seconds),
             () => this._changePeriod()
         );
     }
 
-    _scheduleChangeTracksIn(seconds) {
-        this.tftPlayer.eventReader.addEvent(
+    _scheduleChangeTracksIn(seconds)
+    {
+        if (this.startEventToken !== null)
+        {
+            this.tftPlayer.eventReader.removeEvent(this.startEventToken);
+        }
+        if (this.changeTracksToken !== null)
+        {
+            this.tftPlayer.eventReader.removeEvent(this.changeTracksToken);
+        }
+        this.changeTracksToken = this.tftPlayer.eventReader.addEvent(
             SampleReader.secondsToSamples(seconds),
             () => this._changeTracks()
         );
@@ -330,25 +430,30 @@ export class TFTAutoModePlayer extends SampleReader {
 
     /* ========= SampleReader Base ========= */
 
-    get count() {
+    get count()
+    {
         return this.tftPlayer.count;
     }
 
-    get position() {
+    get position()
+    {
         return this.tftPlayer.position;
     }
 
-    set position(value) {
+    set position(value)
+    {
         this.tftPlayer.position = value;
     }
 
-    read(buffer) {
+    read(buffer)
+    {
         this.tftPlayer.read(buffer);
     }
 
     /* ========= Dispose ========= */
 
-    dispose() {
+    dispose()
+    {
         this.mainTrack = null;
         this.drumsTrack = null;
         this.secondaryTrack = null;

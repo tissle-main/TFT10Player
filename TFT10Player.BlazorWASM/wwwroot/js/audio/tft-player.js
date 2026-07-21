@@ -20,6 +20,7 @@ export class TFTPlayer extends SampleReader {
 
         // deferred event for track switching
         this._changePeriodTracks = new Set();
+        this.changingPeriod = false;
         this._onReaderRemoved = null;
     }
 
@@ -49,7 +50,9 @@ export class TFTPlayer extends SampleReader {
      * Switch period: Early <-> Late
      * Deferred: add tracks only after existing fade out
      */
-    changePeriod() {
+    changePeriod()
+    {
+        this.changingPeriod = true;
         this._changePeriodTracks.clear();
         this.currentPeriod =
             this.currentPeriod === TrackPeriod.Early
@@ -68,7 +71,11 @@ export class TFTPlayer extends SampleReader {
 
         // setup deferred callback
         this._onReaderRemoved = (sender, reader) => {
-            if (sender.count > 0) return;
+            if (sender.count > 0)
+            {
+                this.changingPeriod = false;
+                return;
+            }
 
             for (const track of this._changePeriodTracks) {
                 const newTrack = Tracks.findTrack(
@@ -80,10 +87,9 @@ export class TFTPlayer extends SampleReader {
                 newTrack.reader.position = 0;
                 sender.readers.add(newTrack.reader);
             }
-
             sender.offReaderRemoved(this._onReaderRemoved);
+            this.changingPeriod = false;
         };
-
         this.mixReader.onReaderRemoved(this._onReaderRemoved);
     }
 

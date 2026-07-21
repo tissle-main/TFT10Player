@@ -18,4 +18,5 @@ builder.Services.AddStorageManagerService();
 builder.Services.AddScoped<BrowserFileSystemService>();
 builder.Services.AddScoped<FileCachingService>();
 builder.Services.AddScoped<FileCachingProgressService>();
+builder.Services.AddScoped<TFTPlayerInteropService>();
 await builder.Build().RunAsync();

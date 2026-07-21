@@ -17,7 +17,6 @@ self.onmessage = async (event) => {
         const tft = new TFTPlayer();
         player = new TFTAutoModePlayer(tft);
         player.start(true);
-        self.postMessage({ message: "player_init" });
 
         // Start the port to receive messages
         if (typeof processorPort.start === 'function') processorPort.start();
@@ -30,10 +29,16 @@ self.onmessage = async (event) => {
                 processorPort.postMessage({ type: "push", samples: buffer }, [buffer.buffer]);
             }
         };
-
-        // Acknowledge receipt
-        self.postMessage({ message: 'processor-port-received' });
         return;
+    }
+
+    if (data && data.type === 'change-tracks' && player)
+    {
+        player._scheduleChangeTracksIn(1);
+    }
+    if (data && data.type === 'change-period' && player)
+    {
+        player._scheduleChangePeriodIn(1);
     }
 
     // handle other messages to the worker

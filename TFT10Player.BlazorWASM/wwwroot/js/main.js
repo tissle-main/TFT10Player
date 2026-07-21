@@ -31,7 +31,6 @@
     worker.postMessage({ type: 'processor-port', port: node.port }, [node.port]);
     worker.onmessage = (ev) =>
     {
-        console.log(ev.data.message);
     }
 
     // Return control handles
@@ -41,10 +40,11 @@
         worker,
         resume: async () =>
         {
-            if (audioContext.state === 'suspended')
-            {
-                await audioContext.resume();
-            }
+            await audioContext.resume();
+        },
+        pause: async () =>
+        {
+            await audioContext.suspend();
         },
         close: async () =>
         {
@@ -63,7 +63,15 @@
                 worker.terminate();
             }
             catch (e) {}
+        },
+        changeTracks: async () =>
+        {
+            worker.postMessage({ type: 'change-tracks' });
+        },
+        changePeriod: async () =>
+        {
+            worker.postMessage({ type: 'change-period' });
         }
     };
 }
-window.TFTPlayer = await start();
+window.tftplayer = await start();
