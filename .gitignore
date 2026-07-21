@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /TFT10Player.BlazorWASM/wwwroot/css/tailwind.css
 /TFT10Player.BlazorWASM/tailwind.extension.json
+/TFT10Player.BlazorWASM/wwwroot/TFT10Player
