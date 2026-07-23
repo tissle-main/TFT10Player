@@ -1,20 +1,152 @@
 ﻿@page "/Main"
+@implements IDisposable
 @inject NavigationManager Navigator
 @inject BrowserFileSystemService FileSystem
 @inject TFTPlayerInteropService TFTPlayer
 
-<button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@ClearAllAsync>Clear All</button>
-<button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ResumeAsync())>Resume</button>
-<button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.PauseAsync())>Pause</button>
-<button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ChangeTracksAsync())>Change Tracks</button>
-<button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ChangePeriodAsync())>Change Period</button>
 <script src="js/main.js" type="module" async></script>
+<div>
+    <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@ClearAllAsync>Clear All</button>
+    <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ResumeAsync())>Resume</button>
+    <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.PauseAsync())>Pause</button>
+    <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ChangeTracksAsync())>Change Tracks</button>
+    <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ChangePeriodAsync())>Change Period</button>
+</div>
+<div class="flex flex-row gap-x-1 p-1">
+    <div class="flex flex-col items-center justify-center border">
+        <div>Change Tracks (minutes)</div>
+        <div class="flex flex-row">
+            <div class="flex flex-col items-center border">
+                <div class="flex flex-row items-center justify-center">Min</div>
+                <input class="border-t text-right" type="number" min="1" @bind-value=@MinChangeTracksMinutes />
+            </div>
+            <div class="flex flex-col items-center border">
+                <div class="flex flex-row items-center justify-center">Max</div>
+                <input class="border-t text-right" type="number" min="1" @bind-value=@MaxChangeTracksMinutes />
+            </div>
+        </div>
+    </div>
+    <div class="flex flex-col items-center justify-center border">
+        <div>Change Period (minutes)</div>
+        <div class="flex flex-row">
+            <div class="flex flex-col items-center border">
+                <div class="flex flex-row items-center justify-center">Min</div>
+                <input class="border-t text-right" type="number" min="1" @bind-value=@MinChangePeriodMinutes />
+            </div>
+            <div class="flex flex-col items-center border">
+                <div class="flex flex-row items-center justify-center">Max</div>
+                <input class="border-t text-right" type="number" min="1" @bind-value=@MaxChangePeriodMinutes />
+            </div>
+        </div>
+    </div>
+</div>
 
 @code
 {
+    private int minChangeTracksMinutes = 1;
+    private int maxChangeTracksMinutes = 1;   
+    private int minChangePeriodMinutes = 5;
+    private int maxChangePeriodMinutes = 5;
+
+    private int MinChangeTracksMinutes
+    {
+        get => minChangeTracksMinutes;
+        set
+        {
+            _ = TFTPlayer.SetMinChangeTracksMinutesAsync(value);
+            minChangeTracksMinutes = value;
+        }
+    }
+    private int MaxChangeTracksMinutes
+    {
+        get
+        {
+            return maxChangeTracksMinutes;
+        }
+        set
+        {
+            _ = TFTPlayer.SetMaxChangeTracksMinutesAsync(value);
+            maxChangeTracksMinutes = value;
+        }
+    }
+    private int MinChangePeriodMinutes
+    {
+        get
+        {
+
+            return minChangePeriodMinutes;
+        }
+        set
+        {
+            _ = TFTPlayer.SetMinChangePeriodMinutesAsync(value);
+            minChangePeriodMinutes = value;
+        }
+    }
+    private int MaxChangePeriodMinutes
+    {
+        get
+        {
+            return maxChangePeriodMinutes;
+        }
+        set
+        {
+            _ = TFTPlayer.SetMaxChangePeriodMinutesAsync(value);
+            maxChangePeriodMinutes = value;
+        }
+    }
+
     private async Task ClearAllAsync()
     {
         await FileSystem.ClearAllAsync();
         Navigator.NavigateTo("/");
+    }
+    private void SetMinChangeTracksMinutes(int min)
+    {
+        InvokeAsync(() =>
+        {
+            minChangeTracksMinutes = min;
+            StateHasChanged();
+        });
+    }
+    private void SetMaxChangeTracksMinutes(int min)
+    {
+        InvokeAsync(() =>
+        {
+            maxChangeTracksMinutes = min;
+            StateHasChanged();
+        });
+    }
+    private void SetMinChangePeriodMinutes(int min)
+    {
+        InvokeAsync(() =>
+        {
+            minChangePeriodMinutes = min;
+            StateHasChanged();
+        });
+    }
+    private void SetMaxChangePeriodMinutes(int min)
+    {
+        InvokeAsync(() =>
+        {
+            maxChangePeriodMinutes = min;
+            StateHasChanged();
+        });
+    }
+    protected override void OnInitialized()
+    {
+        TFTPlayerInteropService.GetMinChangeTracksMinutesResult += SetMinChangeTracksMinutes;
+        TFTPlayerInteropService.GetMaxChangeTracksMinutesResult += SetMaxChangeTracksMinutes;
+        TFTPlayerInteropService.GetMinChangePeriodMinutesResult += SetMinChangePeriodMinutes;
+        TFTPlayerInteropService.GetMaxChangePeriodMinutesResult += SetMaxChangePeriodMinutes;
+    }
+}
+@code
+{
+    public void Dispose()
+    {
+        TFTPlayerInteropService.GetMinChangeTracksMinutesResult -= SetMinChangeTracksMinutes;
+        TFTPlayerInteropService.GetMaxChangeTracksMinutesResult -= SetMaxChangeTracksMinutes;
+        TFTPlayerInteropService.GetMinChangePeriodMinutesResult -= SetMinChangePeriodMinutes;
+        TFTPlayerInteropService.GetMaxChangePeriodMinutesResult -= SetMaxChangePeriodMinutes;
     }
 }

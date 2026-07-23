@@ -29,8 +29,25 @@
     // Transfer the MessagePort from the AudioWorkletNode to the Worker
     // The worker is expected to take ownership of the port and communicate directly with the processor
     worker.postMessage({ type: 'processor-port', port: node.port }, [node.port]);
-    worker.onmessage = (ev) =>
+    worker.onmessage = async (ev) =>
     {
+        console.log(ev);
+        if (ev.data.type === 'get-min-change-tracks')
+        {
+            await window.DotNet.invokeMethodAsync("TFT10Player.BlazorWASM", "GetMinChangeTracksMinutesCallback", ev.data.min);
+        }
+        if (ev.data.type === 'get-max-change-tracks')
+        {
+            await window.DotNet.invokeMethodAsync("TFT10Player.BlazorWASM", "GetMaxChangeTracksMinutesCallback", ev.data.min);
+        }
+        if (ev.data.type === 'get-min-change-period')
+        {
+            await window.DotNet.invokeMethodAsync("TFT10Player.BlazorWASM", "GetMinChangePeriodMinutesCallback", ev.data.min);
+        }
+        if (ev.data.type === 'get-max-change-period')
+        {
+            await window.DotNet.invokeMethodAsync("TFT10Player.BlazorWASM", "GetMaxChangePeriodMinutesCallback", ev.data.min);
+        }
     }
 
     // Return control handles
@@ -71,7 +88,47 @@
         changePeriod: async () =>
         {
             worker.postMessage({ type: 'change-period' });
-        }
+        },
+        addTrack: async (group, type) =>
+        {
+            worker.postMessage({ type: 'add-track', group: group, trackType: type });
+        },
+        removeTrack: async (group, type) =>
+        {
+            worker.postMessage({ type: 'remove-track', group: group, trackType: type });
+        },
+        setMinChangeTracksMinutes: async (min) =>
+        {
+            worker.postMessage({ type: 'set-min-change-tracks', min: min });
+        },
+        setMaxChangeTracksMinutes: async (min) =>
+        {
+            worker.postMessage({ type: 'set-max-change-tracks', min: min });
+        },
+        setMinChangePeriodMinutes: async (min) =>
+        {
+            worker.postMessage({ type: 'set-min-change-period', min: min });
+        },
+        setMaxChangePeriodMinutes: async (min) =>
+        {
+            worker.postMessage({ type: 'set-max-change-period', min: min });
+        },
+        getMinChangeTracksMinutes: async () =>
+        {
+            worker.postMessage({ type: 'get-min-change-tracks' });
+        },
+        getMaxChangeTracksMinutes: async () =>
+        {
+            worker.postMessage({ type: 'get-max-change-tracks' });
+        },
+        getMinChangePeriodMinutes: async () =>
+        {
+            worker.postMessage({ type: 'get-min-change-period' });
+        },
+        getMaxChangePeriodMinutes: async () =>
+        {
+            worker.postMessage({ type: 'get-max-change-period' });
+        },
     };
 }
 window.tftplayer = await start();

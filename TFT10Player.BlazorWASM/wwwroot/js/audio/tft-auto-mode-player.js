@@ -32,10 +32,10 @@ export class TFTAutoModePlayer extends SampleReader
         this.changePeriodToken = null;
         this.startEventToken = null;
 
-        this.minChangeTrackMinutes = 4;
-        this.maxChangeTrackMinutes = 4;
-        this.minChangePeriodMinutes = 10;
-        this.maxChangePeriodMinutes = 10;
+        this.minChangeTrackMinutes = 1;
+        this.maxChangeTrackMinutes = 1;
+        this.minChangePeriodMinutes = 5;
+        this.maxChangePeriodMinutes = 5;
     }
 
     /* ========= Static Helpers ========= */

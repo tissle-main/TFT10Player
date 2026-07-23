@@ -31,7 +31,6 @@ self.onmessage = async (event) => {
         };
         return;
     }
-
     if (data && data.type === 'change-tracks' && player)
     {
         player._scheduleChangeTracksIn(1);
@@ -40,9 +39,58 @@ self.onmessage = async (event) => {
     {
         player._scheduleChangePeriodIn(1);
     }
-
-    // handle other messages to the worker
-    // allow sending messages to the processor port if needed
+    if (data && data.type === 'add-track' && player)
+    {
+        player.tftPlayer.addTrack(data.group, data.trackType);
+    }
+    if (data && data.type === 'remove-track' && player)
+    {
+        player.tftPlayer.removeTrack(data.group, data.trackType);
+    }
+    if (data && data.type === 'set-min-change-tracks' && player)
+    {
+        player.minChangeTrackMinutes = Math.max(data.min, 1);
+        player.maxChangeTrackMinutes = Math.max(player.maxChangeTrackMinutes, data.min);
+        self.postMessage({ type: 'get-min-change-tracks', min: player.minChangeTrackMinutes });
+        self.postMessage({ type: 'get-max-change-tracks', min: player.maxChangeTrackMinutes });
+    }
+    if (data && data.type === 'set-max-change-tracks' && player)
+    {
+        player.maxChangeTrackMinutes = Math.max(data.min, 1);
+        player.minChangeTrackMinutes = Math.min(player.minChangeTrackMinutes, player.maxChangeTrackMinutes);
+        self.postMessage({ type: 'get-min-change-tracks', min: player.minChangeTrackMinutes });
+        self.postMessage({ type: 'get-max-change-tracks', min: player.maxChangeTrackMinutes });
+    }
+    if (data && data.type === 'set-min-change-period' && player)
+    {
+        player.minChangePeriodMinutes = Math.max(data.min, 1);
+        player.maxChangePeriodMinutes = Math.max(player.maxChangePeriodMinutes, data.min);
+        self.postMessage({ type: 'get-min-change-period', min: player.minChangePeriodMinutes });
+        self.postMessage({ type: 'get-max-change-period', min: player.maxChangePeriodMinutes });
+    }
+    if (data && data.type === 'set-max-change-period' && player)
+    {
+        player.maxChangePeriodMinutes = Math.max(data.min, 1);
+        player.minChangePeriodMinutes = Math.min(player.minChangePeriodMinutes, player.maxChangePeriodMinutes);
+        self.postMessage({ type: 'get-min-change-period', min: player.minChangePeriodMinutes });
+        self.postMessage({ type: 'get-max-change-period', min: player.maxChangePeriodMinutes });
+    }
+    if (data && data.type === 'get-min-change-tracks' && player)
+    {
+        self.postMessage({ type: 'get-min-change-tracks', min: player.minChangeTrackMinutes });
+    }
+    if (data && data.type === 'get-max-change-tracks' && player)
+    {
+        self.postMessage({ type: 'get-max-change-tracks', min: player.maxChangeTrackMinutes });
+    }
+    if (data && data.type === 'get-min-change-period' && player)
+    {
+        self.postMessage({ type: 'get-min-change-period', min: player.minChangePeriodMinutes });
+    }
+    if (data && data.type === 'get-max-change-period' && player)
+    {
+        self.postMessage({ type: 'get-max-change-period', min: player.maxChangePeriodMinutes });
+    }
     if (data && data.type === 'post-to-processor' && processorPort) {
         processorPort.postMessage(data.message);
     }

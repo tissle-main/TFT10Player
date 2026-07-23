@@ -43,7 +43,10 @@ export class TFTPlayer extends SampleReader {
      */
     removeTrack(group, type) {
         const track = Tracks.findTrack(this.currentPeriod, group, type);
-        track.reader.fadeOut();
+        if (track !== undefined)
+        {
+            track.reader.fadeOut();
+        }
     }
 
     /**
