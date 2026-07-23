@@ -6,11 +6,12 @@
 
 <script src="js/main.js" type="module" async></script>
 <div>
-    <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@ClearAllAsync>Clear All</button>
+    <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.StartAsync())>Start</button>
     <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ResumeAsync())>Resume</button>
     <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.PauseAsync())>Pause</button>
     <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ChangeTracksAsync())>Change Tracks</button>
     <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@(async () => await TFTPlayer.ChangePeriodAsync())>Change Period</button>
+    <button class="m-1 cursor-pointer rounded border border-black bg-white px-1 hover:brightness-90 active:brightness-75" @onclick=@ClearAllAsync>Clear Cache</button>
 </div>
 <div class="flex flex-row gap-x-1 p-1">
     <div class="flex flex-col items-center justify-center border">
@@ -97,6 +98,7 @@
 
     private async Task ClearAllAsync()
     {
+        await TFTPlayer.CloseAsync();
         await FileSystem.ClearAllAsync();
         Navigator.NavigateTo("/");
     }

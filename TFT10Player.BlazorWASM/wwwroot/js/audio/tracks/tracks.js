@@ -11,7 +11,8 @@ import { SampleReader } from "../sample-readers/sample-reader.js";
  * Tracks manager
  * WebWorker + OPFS compatible
  */
-export class Tracks {
+export class Tracks
+{
 
     static lateLoopStartSeconds = (240 / 90) * 58;
     static noOriginStartSeconds = (240 / 140) * 33;
@@ -28,6 +29,9 @@ export class Tracks {
 
     /** @type {FadeSampleReader} */
     static startTrack = null;
+
+    static startTrackFile = null;
+    static endTrackFile = null;
 
     /* ========= Private Helpers ========= */
 
@@ -149,16 +153,16 @@ export class Tracks {
         Tracks.all = await Tracks.create();
 
         // load end track
-        const endFileReader = await FileSampleReader.open("End.pcm");
+        Tracks.endTrackFile = await FileSampleReader.open("End.pcm");
         Tracks.endTrack = new FadeSampleReader(
-            new SmoothEndSampleReader(endFileReader),
+            new SmoothEndSampleReader(Tracks.endTrackFile),
             SampleReader.secondsToSamples(1.0)
         );
 
         // load start track
-        const startFileReader = await FileSampleReader.open("Start.pcm");
+        Tracks.startTrackFile = await FileSampleReader.open("Start.pcm");
         Tracks.startTrack = new FadeSampleReader(
-            new SmoothEndSampleReader(startFileReader),
+            new SmoothEndSampleReader(Tracks.startTrackFile),
             SampleReader.secondsToSamples(1.0)
         );
     }

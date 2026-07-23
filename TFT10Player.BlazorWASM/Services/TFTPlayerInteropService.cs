@@ -36,6 +36,10 @@ public sealed class TFTPlayerInteropService(IJSRuntime thisJSRuntime)
     #endregion
 
     #region Instance
+    public async ValueTask StartAsync(bool startTrack = true)
+    {
+        await thisJSRuntime.InvokeVoidAsync("tftplayer.startPlayer", startTrack);
+    }
     public async ValueTask ResumeAsync()
     {
         await thisJSRuntime.InvokeVoidAsync("tftplayer.resume");
@@ -43,6 +47,10 @@ public sealed class TFTPlayerInteropService(IJSRuntime thisJSRuntime)
     public async ValueTask PauseAsync()
     {
         await thisJSRuntime.InvokeVoidAsync("tftplayer.pause");
+    }
+    public async ValueTask CloseAsync()
+    {
+        await thisJSRuntime.InvokeVoidAsync("tftplayer.close");
     }
     public async ValueTask ChangeTracksAsync()
     {

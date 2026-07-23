@@ -31,7 +31,6 @@
     worker.postMessage({ type: 'processor-port', port: node.port }, [node.port]);
     worker.onmessage = async (ev) =>
     {
-        console.log(ev);
         if (ev.data.type === 'get-min-change-tracks')
         {
             await window.DotNet.invokeMethodAsync("TFT10Player.BlazorWASM", "GetMinChangeTracksMinutesCallback", ev.data.min);
@@ -55,6 +54,10 @@
         audioContext,
         node,
         worker,
+        startPlayer: async (startTrack) =>
+        {
+            worker.postMessage({ type: 'start-player', startTrack: startTrack });
+        },
         resume: async () =>
         {
             await audioContext.resume();

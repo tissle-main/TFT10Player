@@ -16,7 +16,6 @@ self.onmessage = async (event) => {
         await Tracks.init();
         const tft = new TFTPlayer();
         player = new TFTAutoModePlayer(tft);
-        player.start(true);
 
         // Start the port to receive messages
         if (typeof processorPort.start === 'function') processorPort.start();
@@ -30,6 +29,10 @@ self.onmessage = async (event) => {
             }
         };
         return;
+    }
+    if (data && data.type === 'start-player' && player)
+    {
+        player.start(data.startTrack);
     }
     if (data && data.type === 'change-tracks' && player)
     {
